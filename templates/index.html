@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Loan Suite — Eligibility & EMI Calculator</title>
+    <meta name="description"
+        content="Check student loan eligibility and calculate EMI with our AI-powered loan suite." />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #080c18;
+            --card: rgba(255, 255, 255, 0.04);
+            --card2: rgba(255, 255, 255, 0.06);
+            --border: rgba(255, 255, 255, 0.09);
+            --accent: #7c6fff;
+            --accent2: #00d4ff;
+            --green: #00e676;
+            --red: #ff5252;
+            --orange: #ff9f43;
+            --text: #e8eaf6;
+            --muted: #8892b0;
+            --input-bg: rgba(255, 255, 255, 0.06);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2.5rem 1rem 4rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.12;
+            pointer-events: none;
+            animation: drift 10s ease-in-out infinite alternate;
+        }
+
+        .orb1 {
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, #7c6fff, transparent);
+            top: -150px;
+            left: -150px;
+        }
+
+        .orb2 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #00d4ff, transparent);
+            bottom: -120px;
+            right: -120px;
+            animation-delay: -5s;
+        }
+
+        .orb3 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, #ff6b9d, transparent);
+            top: 40%;
+            left: 60%;
+            animation-delay: -2s;
+        }
+
+        @keyframes drift {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(30px, 30px) scale(1.08);
+            }
+        }
+
+        .page {
+            max-width: 820px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, rgba(124, 111, 255, .25), rgba(0, 212, 255, .25));
+            border: 1px solid rgba(124, 111, 255, .4);
+            color: #c5bfff;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 0.35rem 1.1rem;
+            border-radius: 20px;
+            margin-bottom: 1rem;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 20%, var(--accent2) 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.15;
+        }
+
+        .header p {
+            color: var(--muted);
+            margin-top: 0.6rem;
+            font-size: 0.93rem;
+        }
+
+        /* ── Tabs ── */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 5px;
+            margin-bottom: 1.8rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(124, 111, 255, .35);
+        }
+
+        .tab-btn:not(.active):hover {
+            background: rgba(255, 255, 255, .06);
+            color: var(--text);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeUp .35s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 2.2rem;
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, .5);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 0.73rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ── Form ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.77rem;
+            font-weight: 500;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .hint {
+            font-size: 0.69rem;
+            color: rgba(136, 146, 176, .6);
+        }
+
+        input[type="number"],
+        input[type="range"] {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            padding: 0.75rem 1rem;
+            transition: border-color .2s, box-shadow .2s;
+            width: 100%;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 111, 255, .2);
+        }
+
+        /* Range slider */
+        input[type="range"] {
+            padding: 0;
+            height: 6px;
+            border-radius: 99px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, var(--accent) var(--pct, 50%), rgba(255, 255, 255, .1) var(--pct, 50%));
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 0 3px var(--accent);
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: transform .15s, box-shadow .15s, opacity .15s;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(124, 111, 255, .45);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            opacity: .9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+            margin-top: 0.7rem;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--text);
+            box-shadow: none;
+        }
+
+        /* ── Loan Results ── */
+        .results-wrapper {
+            display: none;
+        }
+
+        .results-wrapper.show {
+            display: block;
+            animation: fadeUp .5s ease;
+        }
+
+        .verdict {
+            border-radius: 16px;
+            padding: 1.3rem 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .verdict.eligible {
+            background: rgba(0, 230, 118, .1);
+            border: 1px solid rgba(0, 230, 118, .35);
+        }
+
+        .verdict.not-eligible {
+            background: rgba(255, 82, 82, .1);
+            border: 1px solid rgba(255, 82, 82, .35);
+        }
+
+        .verdict-icon {
+            font-size: 2.6rem;
+            line-height: 1;
+        }
+
+        .verdict-text h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .verdict.eligible .verdict-text h2 {
+            color: var(--green);
+        }
+
+        .verdict.not-eligible .verdict-text h2 {
+            color: var(--red);
+        }
+
+        .verdict-text p {
+            color: var(--muted);
+            font-size: 0.86rem;
+            margin-top: .3rem;
+        }
+
+        .visuals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.4rem;
+            margin-bottom: 1.4rem;
+        }
+
+        /* Gauge */
+        .gauge-card,
+        .donut-card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.6rem;
+            text-align: center;
+        }
+
+        .gauge-card h3,
+        .donut-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1.1rem;
+        }
+
+        .gauge-wrap {
+            position: relative;
+            width: 160px;
+            height: 90px;
+            margin: 0 auto 0.9rem;
+        }
+
+        .gauge-svg {
+            width: 160px;
+            height: 90px;
+            overflow: visible;
+        }
+
+        .gauge-track {
+            fill: none;
+            stroke: rgba(255, 255, 255, .08);
+            stroke-width: 14;
+            stroke-linecap: round;
+        }
+
+        .gauge-fill {
+            fill: none;
+            stroke-width: 14;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.2s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .gauge-pct {
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.9rem;
+            font-weight: 800;
+        }
+
+        .gauge-label {
+            font-size: 0.76rem;
+            color: var(--muted);
+        }
+
+        .donut-wrap {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 0.9rem;
+        }
+
+        .donut-svg {
+            width: 130px;
+            height: 130px;
+        }
+
+        .donut-track {
+            fill: none;
+            stroke: rgba(255, 255, 255, .08);
+            stroke-width: 16;
+        }
+
+        .donut-fill {
+            fill: none;
+            stroke-width: 16;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.2s cubic-bezier(.4, 0, .2, 1);
+            transform-origin: center;
+            transform: rotate(-90deg);
+        }
+
+        .donut-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .donut-center .big {
+            font-size: 1.45rem;
+            font-weight: 800;
+        }
+
+        .donut-center .sm {
+            font-size: 0.66rem;
+            color: var(--muted);
+        }
+
+        .donut-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.73rem;
+            color: var(--muted);
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Factor bars */
+        .factors-card,
+        .importance-card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.6rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .factors-card h3,
+        .importance-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1.3rem;
+        }
+
+        .factor-row {
+            margin-bottom: 0.95rem;
+        }
+
+        .factor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.38rem;
+        }
+
+        .factor-name {
+            font-size: 0.84rem;
+            font-weight: 500;
+        }
+
+        .factor-value {
+            font-size: 0.79rem;
+            font-weight: 600;
+        }
+
+        .bar-track {
+            background: rgba(255, 255, 255, .07);
+            border-radius: 99px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 1s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .imp-row {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .imp-label {
+            font-size: 0.79rem;
+            color: var(--muted);
+            width: 140px;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .imp-bar-track {
+            flex: 1;
+            background: rgba(255, 255, 255, .07);
+            border-radius: 99px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .imp-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            transition: width 1s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .imp-pct {
+            font-size: 0.77rem;
+            font-weight: 600;
+            color: var(--accent2);
+            width: 38px;
+        }
+
+        .tips-card {
+            background: rgba(124, 111, 255, .07);
+            border: 1px solid rgba(124, 111, 255, .2);
+            border-radius: 18px;
+            padding: 1.6rem;
+            margin-top: 1.4rem;
+        }
+
+        .tips-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #c5bfff;
+            margin-bottom: 0.9rem;
+        }
+
+        .tip {
+            display: flex;
+            gap: 0.7rem;
+            align-items: flex-start;
+            margin-bottom: 0.65rem;
+            font-size: 0.84rem;
+            color: var(--muted);
+        }
+
+        .tip-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ── EMI Calculator ── */
+        .emi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.1rem;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .slider-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .slider-val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent2);
+        }
+
+        /* EMI Summary cards */
+        .emi-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .emi-stat {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.3rem 1rem;
+            text-align: center;
+        }
+
+        .emi-stat .stat-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .emi-stat .stat-val {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .emi-stat.monthly .stat-val {
+            color: var(--accent2);
+        }
+
+        .emi-stat.interest .stat-val {
+            color: var(--orange);
+        }
+
+        .emi-stat.total .stat-val {
+            color: var(--green);
+        }
+
+        /* Pie chart */
+        .emi-visuals {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .pie-card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.6rem;
+            text-align: center;
+        }
+
+        .pie-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1.1rem;
+        }
+
+        .pie-wrap {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1rem;
+        }
+
+        .pie-svg {
+            width: 150px;
+            height: 150px;
+            transform: rotate(-90deg);
+        }
+
+        .pie-track {
+            fill: none;
+            stroke: rgba(255, 255, 255, .08);
+            stroke-width: 28;
+        }
+
+        .pie-principal {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 28;
+            transition: stroke-dashoffset 1.2s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .pie-interest {
+            fill: none;
+            stroke: var(--orange);
+            stroke-width: 28;
+            transition: stroke-dashoffset 1.2s cubic-bezier(.4, 0, .2, 1), stroke-dasharray 1.2s;
+        }
+
+        .pie-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .pie-center .big {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .pie-center .sm {
+            font-size: 0.65rem;
+            color: var(--muted);
+        }
+
+        .pie-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        /* Amortization bar chart */
+        .amort-card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.6rem;
+        }
+
+        .amort-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1.2rem;
+        }
+
+        .amort-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 100px;
+        }
+
+        .amort-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+
+        .amort-bar-stack {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            border-radius: 4px 4px 0 0;
+            overflow: hidden;
+        }
+
+        .amort-seg-p {
+            background: var(--accent);
+            transition: height .8s ease;
+        }
+
+        .amort-seg-i {
+            background: var(--orange);
+            transition: height .8s ease;
+        }
+
+        .amort-year-label {
+            font-size: 0.6rem;
+            color: var(--muted);
+        }
+
+        .amort-legend {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 0.8rem;
+        }
+
+        .amort-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.73rem;
+            color: var(--muted);
+        }
+
+        .amort-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+
+        /* Amortization table */
+        .table-card {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 1.6rem;
+            overflow: hidden;
+        }
+
+        .table-card h3 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 1.2rem;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .table-scroll::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        .table-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .15);
+            border-radius: 99px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 0.6rem 0.8rem;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th:first-child {
+            text-align: left;
+        }
+
+        td {
+            padding: 0.55rem 0.8rem;
+            text-align: right;
+            border-bottom: 1px solid rgba(255, 255, 255, .04);
+        }
+
+        td:first-child {
+            text-align: left;
+            color: var(--muted);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .td-principal {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .td-interest {
+            color: var(--orange);
+            font-weight: 600;
+        }
+
+        .td-balance {
+            color: var(--muted);
+        }
+
+        .footer-note {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.74rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 580px) {
+
+            .form-grid,
+            .visuals-grid,
+            .emi-grid,
+            .emi-visuals {
+                grid-template-columns: 1fr;
+            }
+
+            .emi-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 1.4rem;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .imp-label {
+                width: 90px;
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+
+    <div class="page">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="badge">🤖 Kuhoo Finance Demo ~by Sanchit Kalsi</div>
+            <h1>Student Loan Eligibility<br />& EMI Calculator</h1>
+            <p>AI-powered eligibility check · Instant EMI breakdown · Visual insights</p>
+        </div>
+
+        <!-- Tab buttons -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-loan" onclick="switchTab('loan')">🎓 Loan Eligibility</button>
+            <button class="tab-btn" id="tab-emi" onclick="switchTab('emi')">💰 EMI Calculator</button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════
+         TAB 1 — LOAN ELIGIBILITY
+    ══════════════════════════════════════════════════ -->
+        <div class="tab-panel active" id="panel-loan">
+
+            <div class="card">
+                <div class="section-title">Your Details</div>
+                <form action="/predict" method="post" id="loanForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" placeholder="e.g. 21" min="16" max="60"
+                                value="{{ form_data.age if form_data }}" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="academic_score">Academic Score</label>
+                            <input type="number" id="academic_score" name="academic_score" placeholder="0 – 100" min="0"
+                                max="100" value="{{ form_data.academic_score if form_data }}" required />
+                            <span class="hint">Out of 100</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="family_income">Family Income (₹/yr)</label>
+                            <input type="number" id="family_income" name="family_income" placeholder="e.g. 500000"
+                                min="0" value="{{ form_data.family_income if form_data }}" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="coapplicant_income">Co-applicant Income (₹/yr)</label>
+                            <input type="number" id="coapplicant_income" name="coapplicant_income"
+                                placeholder="e.g. 200000" min="0"
+                                value="{{ form_data.coapplicant_income if form_data }}" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="existing_loans">Existing Loans</label>
+                            <input type="number" id="existing_loans" name="existing_loans" placeholder="e.g. 1" min="0"
+                                max="20" value="{{ form_data.existing_loans if form_data }}" required />
+                            <span class="hint">Number of active loans</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="college_rank">College Rank</label>
+                            <input type="number" id="college_rank" name="college_rank" placeholder="e.g. 150" min="1"
+                                value="{{ form_data.college_rank if form_data }}" required />
+                            <span class="hint">National ranking</span>
+                        </div>
+                        <div class="form-group full">
+                            <label for="location_tier">Location Tier</label>
+                            <input type="number" id="location_tier" name="location_tier" placeholder="1, 2, or 3"
+                                min="1" max="3" value="{{ form_data.location_tier if form_data }}" required />
+                            <span class="hint">Tier 1 = Metro &nbsp;|&nbsp; Tier 2 = City &nbsp;|&nbsp; Tier 3 =
+                                Rural</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" id="submitBtn">Check My Eligibility →</button>
+                </form>
+            </div>
+
+            <!-- Results -->
+            {% if prediction_text %}
+            <div class="results-wrapper show" id="results">
+
+                <div class="verdict {{ result_class }}">
+                    <div class="verdict-icon">{{ "✅" if prediction == 1 else "❌" }}</div>
+                    <div class="verdict-text">
+                        <h2>{{ prediction_text }}</h2>
+                        <p>AI confidence in this decision: <strong>{{ conf_pct }}%</strong></p>
+                    </div>
+                </div>
+
+                <div class="visuals-grid">
+                    <div class="gauge-card">
+                        <h3>Eligibility Score</h3>
+                        <div class="gauge-wrap">
+                            <svg class="gauge-svg" viewBox="0 0 160 90">
+                                <path class="gauge-track" d="M 15 80 A 65 65 0 0 1 145 80" stroke-dasharray="204"
+                                    stroke-dashoffset="0" />
+                                <path class="gauge-fill" id="gaugeFill" d="M 15 80 A 65 65 0 0 1 145 80"
+                                    stroke-dasharray="204" stroke-dashoffset="204"
+                                    stroke="{{ '#00e676' if prediction == 1 else '#ff5252' }}" />
+                            </svg>
+                            <div class="gauge-pct" id="gaugePct"
+                                style="color:{{ '#00e676' if prediction == 1 else '#ff5252' }}">0%</div>
+                        </div>
+                        <div class="gauge-label">Probability of Approval</div>
+                    </div>
+
+                    <div class="donut-card">
+                        <h3>Model Confidence</h3>
+                        <div class="donut-wrap">
+                            <svg class="donut-svg" viewBox="0 0 130 130">
+                                <circle class="donut-track" cx="65" cy="65" r="49" />
+                                <circle class="donut-fill" id="donutFill" cx="65" cy="65" r="49"
+                                    stroke="{{ '#00e676' if prediction == 1 else '#ff5252' }}" stroke-dasharray="308"
+                                    stroke-dashoffset="308" />
+                            </svg>
+                            <div class="donut-center">
+                                <div class="big" id="donutPct"
+                                    style="color:{{ '#00e676' if prediction == 1 else '#ff5252' }}">0%</div>
+                                <div class="sm">Confidence</div>
+                            </div>
+                        </div>
+                        <div class="donut-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot"
+                                    style="background:{{ '#00e676' if prediction == 1 else '#ff5252' }}"></div>
+                                {{ "Eligible" if prediction == 1 else "Not Eligible" }}
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background:rgba(255,255,255,.15)"></div>
+                                Remaining
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="factors-card">
+                    <h3>Your Profile Factor Scores</h3>
+                    {% set colors = ['#7c6fff','#00d4ff','#00e676','#ff9f43','#ff6b9d','#a29bfe','#55efc4'] %}
+                    {% for name, score in factor_scores.items() %}
+                    {% set cidx = loop.index0 % colors|length %}
+                    <div class="factor-row">
+                        <div class="factor-header">
+                            <span class="factor-name">{{ name }}</span>
+                            <span class="factor-value" style="color:{{ colors[cidx] }}">{{ score }}/100</span>
+                        </div>
+                        <div class="bar-track">
+                            <div class="bar-fill" data-width="{{ score }}"
+                                style="width:0%; background: linear-gradient(90deg, {{ colors[cidx] }}99, {{ colors[cidx] }});">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="importance-card">
+                    <h3>What Matters Most to the AI Model</h3>
+                    {% for item in importance_data %}
+                    <div class="imp-row">
+                        <div class="imp-label">{{ item.name }}</div>
+                        <div class="imp-bar-track">
+                            <div class="imp-bar-fill" data-width="{{ item.importance }}" style="width:0%"></div>
+                        </div>
+                        <div class="imp-pct">{{ item.importance }}%</div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="tips-card">
+                    <h3>💡 Tips to Improve Eligibility</h3>
+                    {% if prediction == 0 %}
+                    <div class="tip"><span class="tip-icon">📚</span> Aim for an academic score above 65 — it's the
+                        strongest factor.</div>
+                    <div class="tip"><span class="tip-icon">💰</span> A co-applicant with income can significantly boost
+                        your approval chances.</div>
+                    <div class="tip"><span class="tip-icon">🏦</span> Reduce existing loans before applying — fewer
+                        loans = lower risk.</div>
+                    <div class="tip"><span class="tip-icon">🏫</span> Applying from a higher-ranked college improves
+                        your profile.</div>
+                    {% else %}
+                    <div class="tip"><span class="tip-icon">🎉</span> Great profile! Maintain your academic score to
+                        keep eligibility strong.</div>
+                    <div class="tip"><span class="tip-icon">📋</span> Keep your existing loans in check to avoid future
+                        rejections.</div>
+                    <div class="tip"><span class="tip-icon">📈</span> Consider applying for a higher loan amount given
+                        your strong profile.</div>
+                    {% endif %}
+                </div>
+
+            </div>
+            {% endif %}
+        </div><!-- /panel-loan -->
+
+
+        <!-- ══════════════════════════════════════════════════
+         TAB 2 — EMI CALCULATOR
+    ══════════════════════════════════════════════════ -->
+        <div class="tab-panel" id="panel-emi">
+
+            <div class="card">
+                <div class="section-title">Loan Details</div>
+                <div class="emi-grid">
+
+                    <div class="form-group slider-group">
+                        <label>Loan Amount</label>
+                        <div class="slider-row">
+                            <span style="font-size:.8rem;color:var(--muted)">₹10K</span>
+                            <span class="slider-val" id="loanAmtVal">₹5,00,000</span>
+                            <span style="font-size:.8rem;color:var(--muted)">₹50L</span>
+                        </div>
+                        <input type="range" id="loanAmt" min="10000" max="5000000" step="10000" value="500000"
+                            oninput="updateEMI()" />
+                    </div>
+
+                    <div class="form-group slider-group">
+                        <label>Annual Interest Rate</label>
+                        <div class="slider-row">
+                            <span style="font-size:.8rem;color:var(--muted)">1%</span>
+                            <span class="slider-val" id="rateVal">8.5%</span>
+                            <span style="font-size:.8rem;color:var(--muted)">24%</span>
+                        </div>
+                        <input type="range" id="rate" min="1" max="24" step="0.1" value="8.5" oninput="updateEMI()" />
+                    </div>
+
+                    <div class="form-group slider-group">
+                        <label>Loan Tenure</label>
+                        <div class="slider-row">
+                            <span style="font-size:.8rem;color:var(--muted)">1 yr</span>
+                            <span class="slider-val" id="tenureVal">5 Years</span>
+                            <span style="font-size:.8rem;color:var(--muted)">30 yr</span>
+                        </div>
+                        <input type="range" id="tenure" min="1" max="30" step="1" value="5" oninput="updateEMI()" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Or Enter Loan Amount (₹)</label>
+                        <input type="number" id="loanAmtInput" placeholder="e.g. 500000" value="500000" min="10000"
+                            max="5000000" oninput="syncFromInput()" />
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- EMI Summary -->
+            <div class="emi-summary" id="emiSummary">
+                <div class="emi-stat monthly">
+                    <div class="stat-label">Monthly EMI</div>
+                    <div class="stat-val" id="emiMonthly">₹0</div>
+                </div>
+                <div class="emi-stat interest">
+                    <div class="stat-label">Total Interest</div>
+                    <div class="stat-val" id="emiInterest">₹0</div>
+                </div>
+                <div class="emi-stat total">
+                    <div class="stat-label">Total Payment</div>
+                    <div class="stat-val" id="emiTotal">₹0</div>
+                </div>
+            </div>
+
+            <!-- Pie + Bar chart -->
+            <div class="emi-visuals">
+                <div class="pie-card">
+                    <h3>Payment Breakdown</h3>
+                    <div class="pie-wrap">
+                        <svg class="pie-svg" viewBox="0 0 150 150" id="pieSvg">
+                            <circle class="pie-track" cx="75" cy="75" r="55" stroke-dasharray="345.4"
+                                stroke-dashoffset="0" />
+                            <circle class="pie-principal" cx="75" cy="75" r="55" id="piePrincipal"
+                                stroke-dasharray="345.4" stroke-dashoffset="0" />
+                            <circle class="pie-interest" cx="75" cy="75" r="55" id="pieInterest"
+                                stroke-dasharray="0 345.4" stroke-dashoffset="0" />
+                        </svg>
+                        <div class="pie-center">
+                            <div class="big" id="pieRatio">—</div>
+                            <div class="sm">P : I</div>
+                        </div>
+                    </div>
+                    <div class="pie-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--accent)"></div>Principal
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background:var(--orange)"></div>Interest
+                        </div>
+                    </div>
+                </div>
+
+                <div class="amort-card">
+                    <h3>Year-wise Breakdown</h3>
+                    <div class="amort-bars" id="amortBars"></div>
+                    <div class="amort-legend">
+                        <div class="amort-legend-item">
+                            <div class="amort-dot" style="background:var(--accent)"></div>Principal
+                        </div>
+                        <div class="amort-legend-item">
+                            <div class="amort-dot" style="background:var(--orange)"></div>Interest
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amortization Table -->
+            <div class="table-card">
+                <h3>📋 Amortization Schedule</h3>
+                <div class="table-scroll">
+                    <table id="amortTable">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Principal (₹)</th>
+                                <th>Interest (₹)</th>
+                                <th>Total Paid (₹)</th>
+                                <th>Balance (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="amortBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div><!-- /panel-emi -->
+
+        <p class="footer-note">🤖 Kuhoo Finance Demo ~by Sanchit Kalsi</p>
+    </div>
+
+    <script>
+        /* ─── Tab switching ─── */
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.getElementById('panel-' + tab).classList.add('active');
+            if (tab === 'emi') updateEMI();
+        }
+
+        /* ─── Loan eligibility animations ─── */
+        const eligPct = {{ eligible_pct if eligible_pct is defined else 0 }};
+        const confPct = {{ conf_pct if conf_pct is defined else 0 }};
+
+        window.addEventListener('load', () => {
+            const gaugeFill = document.getElementById('gaugeFill');
+            const gaugePctEl = document.getElementById('gaugePct');
+            if (gaugeFill) {
+                const arcLen = 204;
+                setTimeout(() => {
+                    gaugeFill.style.strokeDashoffset = arcLen - (eligPct / 100) * arcLen;
+                    animateCount(gaugePctEl, 0, Math.round(eligPct), 1200, '%');
+                }, 300);
+            }
+            const donutFill = document.getElementById('donutFill');
+            const donutPctEl = document.getElementById('donutPct');
+            if (donutFill) {
+                setTimeout(() => {
+                    donutFill.style.strokeDashoffset = 308 - (confPct / 100) * 308;
+                    animateCount(donutPctEl, 0, Math.round(confPct), 1200, '%');
+                }, 300);
+            }
+            document.querySelectorAll('.bar-fill').forEach(bar => {
+                setTimeout(() => { bar.style.width = bar.dataset.width + '%'; }, 400);
+            });
+            const impBars = document.querySelectorAll('.imp-bar-fill');
+            const maxImp = Math.max(...[...impBars].map(b => parseFloat(b.dataset.width) || 0));
+            impBars.forEach(bar => {
+                const w = maxImp > 0 ? (parseFloat(bar.dataset.width) / maxImp) * 100 : 0;
+                setTimeout(() => { bar.style.width = w + '%'; }, 500);
+            });
+            const results = document.getElementById('results');
+            if (results) results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            // Init EMI
+            updateEMI();
+        });
+
+        function animateCount(el, from, to, duration, suffix) {
+            if (!el) return;
+            const start = performance.now();
+            function step(now) {
+                const t = Math.min((now - start) / duration, 1);
+                const ease = 1 - Math.pow(1 - t, 3);
+                el.textContent = Math.round(from + (to - from) * ease) + suffix;
+                if (t < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        /* ─── Form loading state ─── */
+        document.getElementById('loanForm').addEventListener('submit', function () {
+            const btn = document.getElementById('submitBtn');
+            btn.textContent = '🔍 Analyzing...';
+            btn.style.opacity = '0.7';
+        });
+
+        /* ─── EMI Calculator ─── */
+        function fmt(n) {
+            if (n >= 1e7) return '₹' + (n / 1e7).toFixed(2) + 'Cr';
+            if (n >= 1e5) return '₹' + (n / 1e5).toFixed(2) + 'L';
+            return '₹' + Math.round(n).toLocaleString('en-IN');
+        }
+
+        function syncFromInput() {
+            const v = parseFloat(document.getElementById('loanAmtInput').value) || 500000;
+            const clamped = Math.min(5000000, Math.max(10000, v));
+            document.getElementById('loanAmt').value = clamped;
+            updateEMI();
+        }
+
+        function updateSliderGradient(el) {
+            const min = parseFloat(el.min), max = parseFloat(el.max), val = parseFloat(el.value);
+            const pct = ((val - min) / (max - min)) * 100;
+            el.style.setProperty('--pct', pct + '%');
+        }
+
+        function updateEMI() {
+            const P = parseFloat(document.getElementById('loanAmt').value);
+            const annualRate = parseFloat(document.getElementById('rate').value);
+            const years = parseInt(document.getElementById('tenure').value);
+
+            // Sync input box
+            document.getElementById('loanAmtInput').value = P;
+
+            // Update labels
+            document.getElementById('loanAmtVal').textContent = fmt(P);
+            document.getElementById('rateVal').textContent = annualRate.toFixed(1) + '%';
+            document.getElementById('tenureVal').textContent = years + (years === 1 ? ' Year' : ' Years');
+
+            // Update slider gradients
+            ['loanAmt', 'rate', 'tenure'].forEach(id => updateSliderGradient(document.getElementById(id)));
+
+            const r = annualRate / 12 / 100;
+            const n = years * 12;
+
+            let emi, totalPayment, totalInterest;
+            if (r === 0) {
+                emi = P / n;
+            } else {
+                emi = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+            }
+            totalPayment = emi * n;
+            totalInterest = totalPayment - P;
+
+            document.getElementById('emiMonthly').textContent = fmt(emi);
+            document.getElementById('emiInterest').textContent = fmt(totalInterest);
+            document.getElementById('emiTotal').textContent = fmt(totalPayment);
+
+            // Pie chart (circumference = 2π×55 ≈ 345.4)
+            const circ = 345.4;
+            const principalArc = (P / totalPayment) * circ;
+            const interestArc = (totalInterest / totalPayment) * circ;
+            const piePrincipal = document.getElementById('piePrincipal');
+            const pieInterest = document.getElementById('pieInterest');
+            piePrincipal.style.strokeDasharray = principalArc + ' ' + circ;
+            piePrincipal.style.strokeDashoffset = 0;
+            pieInterest.style.strokeDasharray = interestArc + ' ' + circ;
+            pieInterest.style.strokeDashoffset = -principalArc;
+            document.getElementById('pieRatio').textContent =
+                Math.round(P / totalPayment * 100) + ':' + Math.round(totalInterest / totalPayment * 100);
+
+            // Year-wise amortization
+            buildAmortization(P, r, n, emi, years);
+        }
+
+        function buildAmortization(P, r, n, emi, years) {
+            let balance = P;
+            const yearlyData = [];
+
+            for (let y = 1; y <= years; y++) {
+                let yPrincipal = 0, yInterest = 0;
+                const months = Math.min(12, n - (y - 1) * 12);
+                for (let m = 0; m < months; m++) {
+                    const intPart = balance * r;
+                    const prinPart = emi - intPart;
+                    yInterest += intPart;
+                    yPrincipal += prinPart;
+                    balance = Math.max(0, balance - prinPart);
+                }
+                yearlyData.push({ year: y, principal: yPrincipal, interest: yInterest, balance });
+            }
+
+            // Bar chart
+            const barsEl = document.getElementById('amortBars');
+            barsEl.innerHTML = '';
+            const maxTotal = Math.max(...yearlyData.map(d => d.principal + d.interest));
+            yearlyData.forEach(d => {
+                const totalH = 100;
+                const pH = Math.round((d.principal / maxTotal) * totalH);
+                const iH = Math.round((d.interest / maxTotal) * totalH);
+                barsEl.innerHTML += `
+          <div class="amort-bar-wrap">
+            <div class="amort-bar-stack" style="height:${pH + iH}px">
+              <div class="amort-seg-i" style="height:${iH}px"></div>
+              <div class="amort-seg-p" style="height:${pH}px"></div>
+            </div>
+            <div class="amort-year-label">Y${d.year}</div>
+          </div>`;
+            });
+
+            // Table
+            const tbody = document.getElementById('amortBody');
+            tbody.innerHTML = yearlyData.map(d => `
+        <tr>
+          <td>Year ${d.year}</td>
+          <td class="td-principal">${Math.round(d.principal).toLocaleString('en-IN')}</td>
+          <td class="td-interest">${Math.round(d.interest).toLocaleString('en-IN')}</td>
+          <td>${Math.round(d.principal + d.interest).toLocaleString('en-IN')}</td>
+          <td class="td-balance">${Math.round(d.balance).toLocaleString('en-IN')}</td>
+        </tr>`).join('');
+        }
+
+        // If results exist, keep on loan tab; otherwise default is already loan
+        {% if prediction_text %}
+        // already on loan tab
+        {% endif %}
+    </script>
+</body>
+
+</html>
