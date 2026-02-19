@@ -2,7 +2,10 @@ from flask import Flask, request, render_template, jsonify
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
-app = Flask(__name__)
+import os
+
+# This tells Flask to look in the current folder for templates, which is more reliable on Render
+app = Flask(__name__, template_folder='.', static_folder='.')
 
 # --- Train a simple model with synthetic data ---
 np.random.seed(42)
@@ -52,7 +55,11 @@ def compute_factor_scores(features):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    # Try multiple paths just to be safe for deployment
+    for path in ['templates/index.html', 'index.html']:
+        if os.path.exists(path):
+            return render_template(path.split('/')[-1])
+    return "Error: index.html not found in root or templates/ folder."
 
 @app.route('/predict', methods=['POST'])
 def predict():
