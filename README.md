@@ -1,5 +1,3 @@
-# Kuhoo Finance Demo
-
 AI-powered Student Loan Eligibility Predictor + EMI Calculator  
 Built by **Sanchit Kalsi**
 
